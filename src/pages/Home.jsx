@@ -4,6 +4,8 @@ import { Categories, PizzaBlock, SortPopup, LoadingBlock } from "../components";
 import { useSelector, useDispatch } from "react-redux";
 import { setCategory, setSortBy } from "../redux/action/filters";
 import { fetchPizzas } from "../redux/action/pizzas";
+import { addPizzaToCart } from "../redux/action/cart";
+
 
 const categoryNames = [
   "Мясные",
@@ -21,6 +23,7 @@ const sortItem = [
 const Home = () => {
   const dispatch = useDispatch();
   const items = useSelector(({ pizzas }) => pizzas.items);
+  const cartItems = useSelector(({ cart }) => cart.items);
   const isLoaded = useSelector(({ pizzas }) => pizzas.isLoaded);
   const { category, sortBy } = useSelector(({ filters }) => filters);
 
@@ -32,20 +35,42 @@ const Home = () => {
     dispatch(setCategory(index));
   }, []);
 
-  const onSelectSortType = React.useCallback((type) => {
-    dispatch(setSortBy(type));
-  }, []);
+  const onSelectSortType = React.useCallback(
+    (type) => {
+      dispatch(setSortBy(type));
+    },
+    [dispatch]
+  );
+  const handleAddPizzaToCart = (obj) => {
+    dispatch({
+      type: 'ADD_PIZZA_CART',
+      payload: obj,
+    });
+  };
   return (
     <div className="container">
       <div className="content__top">
-        <Categories activeCategory={category} onClickCategory={onSelectCategory} items={categoryNames} />
-        <SortPopup activeSortType={sortBy.type} items={sortItem} onClickSortType={onSelectSortType} />
+        <Categories
+          activeCategory={category}
+          onClickCategory={onSelectCategory}
+          items={categoryNames}
+        />
+        <SortPopup
+          activeSortType={sortBy.type}
+          items={sortItem}
+          onClickSortType={onSelectSortType}
+        />
       </div>
       <h2 className="content__title">Все пиццы</h2>
       <div className="content__items">
         {isLoaded
           ? items.map((obj) => (
-              <PizzaBlock key={obj.id} isLoading={true} {...obj}  />
+              <PizzaBlock
+                onClickAddPizza={handleAddPizzaToCart}
+                key={obj.id}
+                addedCount={cartItems[obj.id] && cartItems[obj.id].length}
+                {...obj}
+              />
             ))
           : Array(12)
               .fill(0)
